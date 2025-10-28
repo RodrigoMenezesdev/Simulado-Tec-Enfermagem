@@ -83,7 +83,6 @@ function lerTexto(textoParaLer) {
         }
 
         // 3. Adiciona um pequeno atraso (Timeout de 100ms)
-        // Isso é o que resolve o problema de "áudio não carrega no clique" em muitos dispositivos.
         setTimeout(() => {
             speechSynthesis.speak(utterance);
         }, 100); 
@@ -187,7 +186,7 @@ function renderBlock() {
     updateNavigationButtons();
 }
 
-// 4. Criar HTML da pergunta 
+// 4. Criar HTML da pergunta (MODIFICADA para incluir botão de áudio nas opções)
 function createQuestionHtml(question, globalIndex) {
     const qBlock = document.createElement('div');
     qBlock.className = 'question-block';
@@ -195,7 +194,7 @@ function createQuestionHtml(question, globalIndex) {
 
     const formattedNumber = String(globalIndex).padStart(2, '0');
 
-    // Container para o número, texto da pergunta E o botão de áudio
+    // Container para o número, texto da pergunta E o botão de áudio da PERGUNTA
     const qHeader = document.createElement('div');
     qHeader.className = 'question-header';
     
@@ -203,19 +202,18 @@ function createQuestionHtml(question, globalIndex) {
     qText.className = 'question-text';
     qText.textContent = `${formattedNumber}. ${question.question}`;
     
-    // Cria o botão de áudio
-    const audioButton = document.createElement('button');
-    audioButton.textContent = '🔊';
-    audioButton.className = 'audio-button';
-    audioButton.ariaLabel = `Ouvir pergunta ${formattedNumber}`;
+    // Botão de áudio da PERGUNTA
+    const audioButtonQuestion = document.createElement('button');
+    audioButtonQuestion.textContent = '🔊';
+    audioButtonQuestion.className = 'audio-button question-audio';
+    audioButtonQuestion.ariaLabel = `Ouvir pergunta ${formattedNumber}`;
 
-    // Adiciona o evento de clique ao botão de áudio
-    audioButton.onclick = () => lerTexto(question.question); // Passa o texto da pergunta
+    // Evento de clique para ler a PERGUNTA
+    audioButtonQuestion.onclick = () => lerTexto(question.question); 
     
-    // Adiciona o texto e o botão ao cabeçalho
     qHeader.appendChild(qText);
-    qHeader.appendChild(audioButton);
-    qBlock.appendChild(qHeader); // Adiciona o cabeçalho ao bloco da pergunta
+    qHeader.appendChild(audioButtonQuestion);
+    qBlock.appendChild(qHeader); 
 
     const optionsDiv = document.createElement('div');
     optionsDiv.className = 'answer-options';
@@ -226,14 +224,38 @@ function createQuestionHtml(question, globalIndex) {
         const optionWrapper = document.createElement('div');
         optionWrapper.className = 'option-wrapper';
 
+        // Container para o botão de resposta e o botão de áudio da opção
+        const optionFlex = document.createElement('div');
+        optionFlex.className = 'option-flex';
+
+        // Botão de Opção de Resposta
         const optionButton = document.createElement('button');
         optionButton.textContent = `${letters[index]}) ${option.text}`;
         optionButton.dataset.correct = option.isCorrect;
         optionButton.dataset.index = index;
         optionButton.dataset.rationale = option.rationale;
         optionButton.onclick = (e) => handleAnswer(e.target, question.id, index);
+        optionButton.className = 'option-select-button'; // Nova classe para estilizar
 
-        optionWrapper.appendChild(optionButton);
+        // NOVO: Botão de áudio da OPÇÃO
+        const audioButtonOption = document.createElement('button');
+        audioButtonOption.textContent = '🔊';
+        audioButtonOption.className = 'audio-button option-audio';
+        audioButtonOption.ariaLabel = `Ouvir opção ${letters[index]}`;
+        
+        // Evento de clique para ler a OPÇÃO
+        // O texto a ser lido é a letra e o texto da opção
+        audioButtonOption.onclick = (e) => {
+            e.stopPropagation(); // Evita que o clique no audioButtonOption dispare o handleAnswer
+            lerTexto(`Opção ${letters[index]}, ${option.text}`);
+        };
+
+        // Adiciona os botões ao container flex
+        optionFlex.appendChild(optionButton);
+        optionFlex.appendChild(audioButtonOption);
+        
+        // Adiciona o container flex ao wrapper da opção
+        optionWrapper.appendChild(optionFlex);
         optionsDiv.appendChild(optionWrapper);
     });
 
@@ -241,13 +263,13 @@ function createQuestionHtml(question, globalIndex) {
 
     if (userAnswers[question.id] !== undefined) {
         const answeredIndex = userAnswers[question.id].selectedIndex;
-        const answeredButton = qBlock.querySelector(`button[data-index="${answeredIndex}"]`);
+        const answeredButton = qBlock.querySelector(`button.option-select-button[data-index="${answeredIndex}"]`);
         
         if (answeredButton) {
             handleAnswer(answeredButton, question.id, answeredIndex, false);
         }
 
-        qBlock.querySelectorAll('button').forEach(btn => btn.disabled = true);
+        qBlock.querySelectorAll('button.option-select-button, button.option-audio').forEach(btn => btn.disabled = true);
     }
 
     return qBlock;
@@ -271,7 +293,9 @@ function handleAnswer(selectedButton, questionId, selectedIndex, shouldUpdateSco
     
     showFeedback(qBlock, isCorrect, selectedIndex);
 
-    qBlock.querySelectorAll('button').forEach(btn => btn.disabled = true);
+    // Desabilita todos os botões de opção e áudio das opções
+    qBlock.querySelectorAll('button.option-select-button, button.option-audio').forEach(btn => btn.disabled = true);
+    qBlock.querySelector('button.question-audio').disabled = true; // Desabilita o áudio da pergunta também
     
     validationMessage.style.display = 'none'; 
 
@@ -285,7 +309,7 @@ function handleAnswer(selectedButton, questionId, selectedIndex, shouldUpdateSco
 
 // 6. Mostrar feedback visual e explicação
 function showFeedback(qBlock, selectedIsCorrect, selectedIndex) {
-    const buttons = qBlock.querySelectorAll('button');
+    const buttons = qBlock.querySelectorAll('button.option-select-button');
     let correctRationale = '';
 
     if (qBlock.querySelector('.rationale-text')) { qBlock.querySelector('.rationale-text').remove(); }
@@ -312,7 +336,8 @@ function showFeedback(qBlock, selectedIsCorrect, selectedIndex) {
             const feedbackSpan = document.createElement('span');
             feedbackSpan.className = selectedIsCorrect ? 'feedback-correct' : 'feedback-incorrect';
             feedbackSpan.textContent = selectedIsCorrect ? ' ✅ Correto' : ' ❌ Erro';
-            btn.insertAdjacentElement('afterend', feedbackSpan);
+            // Insere o feedback após o botão de seleção (que está dentro de optionFlex)
+            btn.closest('.option-flex').insertAdjacentElement('afterend', feedbackSpan);
         }
     });
 
@@ -512,4 +537,3 @@ function exitQuiz() {
 
 // Inicia o quiz
 document.addEventListener('DOMContentLoaded', loadQuestions);
-                
