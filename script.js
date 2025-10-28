@@ -1,4 +1,5 @@
-const QUESTIONS_PER_BLOCK = 10;
+// CORRIGIDO: Const para const (padrão JS)
+const QUESTIONS_PER_BLOCK = 10; 
 let originalQuestions = [];
 let shuffledQuestions = [];
 let currentBlock = 0;
@@ -21,6 +22,82 @@ const motivationMessages = [
     "Fim de jogo! Você chegou ao final do quiz. Sua persistência e dedicação são a chave para o domínio do Pacote Office. Orgulhe-se do seu esforço!"
 ];
 
+// =======================================================
+// NOVAS FUNÇÕES: LEITURA DE TEXTO (TEXT-TO-SPEECH - TTS)
+// LÓGICA ROBUSTA PARA CARREGAMENTO DE VOZES (MAIOR COMPATIBILIDADE)
+// =======================================================
+
+let vozPortugues = null;
+
+// Lógica de carregamento robusto
+function carregarVozes() {
+    if (vozPortugues) return; // Já carregou
+
+    const vozes = speechSynthesis.getVoices();
+    
+    // Tenta encontrar uma voz em Português do Brasil.
+    const ptVoice = vozes.find(voice => 
+        voice.lang === 'pt-BR' || 
+        voice.lang === 'pt_BR' || 
+        (voice.lang.startsWith('pt-') && !voice.lang.includes('PT')) // Captura 'pt-pt' mas prefere 'pt-br'
+    );
+    
+    if (ptVoice) {
+        vozPortugues = ptVoice;
+    } else if (vozes.length === 0) {
+        // CORREÇÃO: Se a lista de vozes está vazia, o navegador ainda não as carregou.
+        // Tenta novamente em 200ms.
+        console.log("Vozes do sistema não carregadas. Tentando novamente...");
+        setTimeout(carregarVozes, 200);
+    } else {
+        console.warn("Voz em Português (pt-BR) não foi encontrada. O navegador usará uma voz padrão, que pode não ser em Português.");
+    }
+}
+
+// O evento 'onvoiceschanged' é a forma ideal, mas pode falhar.
+if ('speechSynthesis' in window) {
+    speechSynthesis.onvoiceschanged = carregarVozes;
+    // Tenta carregar imediatamente no início, caso o evento já tenha disparado.
+    carregarVozes(); 
+}
+
+
+function pararLeitura() {
+    if ('speechSynthesis' in window) {
+        speechSynthesis.cancel();
+    }
+}
+
+function lerTexto(textoParaLer) {
+    pararLeitura();
+
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(textoParaLer);
+        
+        // 1. Tenta usar a voz específica que encontramos (vozPortugues agora é mais confiável)
+        if (vozPortugues) {
+            utterance.voice = vozPortugues;
+        } else {
+            // 2. Se falhar, pelo menos define a língua
+            utterance.lang = 'pt-BR'; 
+        }
+
+        // 3. Adiciona um pequeno atraso (Timeout de 100ms)
+        // Isso é o que resolve o problema de "áudio não carrega no clique" em muitos dispositivos.
+        setTimeout(() => {
+            speechSynthesis.speak(utterance);
+        }, 100); 
+
+    } else {
+        console.warn('Web Speech API não suportada neste navegador.');
+    }
+}
+
+// =======================================================
+// FIM DAS FUNÇÕES TTS
+// =======================================================
+
+
 // --- FUNÇÃO DE ALEATORIEDADE ---
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -31,6 +108,7 @@ function shuffleArray(array) {
 
 // 1. Carregar as perguntas
 async function loadQuestions() {
+    pararLeitura(); 
     quizSubtitle.textContent = "Carregando Quiz...";
     quizContent.innerHTML = "<p>Tentando carregar as perguntas...</p>";
     
@@ -72,6 +150,7 @@ async function loadQuestions() {
 
 // 2. Iniciar o Quiz
 function startQuiz() {
+    pararLeitura(); 
     shuffledQuestions = [...originalQuestions]; 
     shuffleArray(shuffledQuestions);
 
@@ -86,6 +165,7 @@ function startQuiz() {
 
 // 3. Renderizar o bloco atual
 function renderBlock() {
+    pararLeitura(); 
     const startIdx = currentBlock * QUESTIONS_PER_BLOCK;
     const endIdx = startIdx + QUESTIONS_PER_BLOCK;
     const blockQuestions = shuffledQuestions.slice(startIdx, endIdx);
@@ -107,7 +187,7 @@ function renderBlock() {
     updateNavigationButtons();
 }
 
-// 4. Criar HTML da pergunta
+// 4. Criar HTML da pergunta 
 function createQuestionHtml(question, globalIndex) {
     const qBlock = document.createElement('div');
     qBlock.className = 'question-block';
@@ -115,10 +195,27 @@ function createQuestionHtml(question, globalIndex) {
 
     const formattedNumber = String(globalIndex).padStart(2, '0');
 
+    // Container para o número, texto da pergunta E o botão de áudio
+    const qHeader = document.createElement('div');
+    qHeader.className = 'question-header';
+    
     const qText = document.createElement('p');
     qText.className = 'question-text';
     qText.textContent = `${formattedNumber}. ${question.question}`;
-    qBlock.appendChild(qText);
+    
+    // Cria o botão de áudio
+    const audioButton = document.createElement('button');
+    audioButton.textContent = '🔊';
+    audioButton.className = 'audio-button';
+    audioButton.ariaLabel = `Ouvir pergunta ${formattedNumber}`;
+
+    // Adiciona o evento de clique ao botão de áudio
+    audioButton.onclick = () => lerTexto(question.question); // Passa o texto da pergunta
+    
+    // Adiciona o texto e o botão ao cabeçalho
+    qHeader.appendChild(qText);
+    qHeader.appendChild(audioButton);
+    qBlock.appendChild(qHeader); // Adiciona o cabeçalho ao bloco da pergunta
 
     const optionsDiv = document.createElement('div');
     optionsDiv.className = 'answer-options';
@@ -158,6 +255,7 @@ function createQuestionHtml(question, globalIndex) {
 
 // 5. Lidar com a resposta
 function handleAnswer(selectedButton, questionId, selectedIndex, shouldUpdateScore = true) {
+    pararLeitura(); // Parar a leitura quando uma resposta for dada
     const qBlock = selectedButton.closest('.question-block');
     const question = originalQuestions.find(q => q.id === questionId);
     if (!question) return;
@@ -206,11 +304,11 @@ function showFeedback(qBlock, selectedIsCorrect, selectedIndex) {
 
         const isCurrentlySelected = parseInt(btn.dataset.index) === selectedIndex;
 
-        if (!selectedIsCorrect && isCurrentlySelected) {
-            btn.classList.add('incorrect');
-        }
-
         if (isCurrentlySelected) {
+            if (!selectedIsCorrect) {
+                 btn.classList.add('incorrect');
+            }
+           
             const feedbackSpan = document.createElement('span');
             feedbackSpan.className = selectedIsCorrect ? 'feedback-correct' : 'feedback-incorrect';
             feedbackSpan.textContent = selectedIsCorrect ? ' ✅ Correto' : ' ❌ Erro';
@@ -336,8 +434,9 @@ function updateNavigationButtons() {
     navigationArea.innerHTML = `${backButtonHtml}${primaryButtonHtml}`;
 }
 
-// Funções de Navegação
+// Funções de Navegação (MODIFICADAS para incluir parada de áudio)
 function navigateBack() {
+    pararLeitura(); 
     if (currentBlock > 0) {
         currentBlock--;
         renderBlock();
@@ -345,6 +444,7 @@ function navigateBack() {
 }
 
 function navigateNext() {
+    pararLeitura(); 
     // Verifica o estado de conclusão para garantir que todas as perguntas foram respondidas
     const isComplete = checkBlockCompletionState();
     
@@ -360,6 +460,7 @@ function navigateNext() {
 }
 
 function finishQuiz() {
+    pararLeitura(); 
     const totalQuestions = shuffledQuestions.length;
     quizContent.innerHTML = `
         <h2>Resultado Final do Quiz</h2>
@@ -380,6 +481,7 @@ function finishQuiz() {
 }
 
 function exitQuiz() {
+    pararLeitura(); 
     const confirmExit = confirm("Tem certeza que deseja sair do quiz? Seu progresso será perdido, mas o placar atual será exibido.");
 
     if (confirmExit) {
@@ -410,3 +512,4 @@ function exitQuiz() {
 
 // Inicia o quiz
 document.addEventListener('DOMContentLoaded', loadQuestions);
+                
