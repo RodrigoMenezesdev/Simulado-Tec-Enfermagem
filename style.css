@@ -82,29 +82,13 @@ h1 {
     padding-right: 15px;
 }
 
-/* Estilo para o botão de Leitura de Áudio */
-.audio-button {
-    /* Estilo visual */
-    background-color: var(--highlight-bg); /* Rosa Claro de Fundo */
-    color: var(--primary-color); /* Texto Rosa */
-    border: 1px solid var(--primary-color); /* Borda Rosa */
-    
-    /* Tamanho e Forma */
-    padding: 8px 12px;
-    border-radius: 8px; 
-    font-size: 1.2em;
-    line-height: 1; 
-    cursor: pointer;
-    transition: background-color 0.2s, color 0.2s;
-    
-    flex-shrink: 0; 
+/* NOVO: Container flex para alinhar o botão de opção e o áudio da opção */
+.option-flex {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Espaço entre o botão de resposta e o botão de áudio */
+    width: 100%; /* Ocupa toda a largura do option-wrapper */
 }
-
-.audio-button:hover {
-    background-color: var(--primary-color); /* Rosa no hover */
-    color: white;
-}
-/* FIM DAS NOVAS REGRAS */
 
 .answer-options {
     display: flex;
@@ -112,15 +96,38 @@ h1 {
     gap: 10px;
 }
 
-/* Botões de Opção (Estilo CÁPSULA ROSA) */
-.answer-options button {
+/* Estilo Base para todos os botões de áudio */
+.audio-button {
+    background-color: var(--highlight-bg); 
+    color: var(--primary-color); 
+    border: 1px solid var(--primary-color);
+    padding: 8px 12px;
+    border-radius: 8px; 
+    font-size: 1.2em;
+    line-height: 1; 
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    flex-shrink: 0; 
+}
+
+.audio-button:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Botão de Opção de Resposta (Selecionar) */
+.option-select-button {
+    /* Ocupa a maior parte do espaço, permitindo que o áudio fique ao lado */
+    flex-grow: 1; 
+    
+    /* Estilo CÁPSULA ROSA */
     width: 100%;
     text-align: left;
     padding: 14px 20px;
     
     border: none; 
     border-radius: 999px; 
-    background-color: var(--option-default-bg); /* Fundo Rosa Sólido */
+    background-color: var(--option-default-bg); 
     color: var(--option-default-text); 
     
     font-size: 1em;
@@ -129,20 +136,27 @@ h1 {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.answer-options button:hover:not([disabled]) {
+.option-select-button:hover:not([disabled]) {
     background-color: #c2185b; /* Rosa um pouco mais escuro no hover */
 }
 
 /* Botão desabilitado */
-.answer-options button:disabled {
+.option-select-button:disabled {
     cursor: default;
     opacity: 1; 
 }
 
+/* O botão de áudio de uma opção já respondida também deve ser desabilitado */
+.option-audio:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+
 /* --- Feedback Visual --- */
 
 /* Opção Correta (Verde) */
-.answer-options button.correct {
+.option-select-button.correct {
     background-color: var(--success-color);
     color: white;
     border: none; 
@@ -150,7 +164,7 @@ h1 {
 }
 
 /* Opção Incorreta (Vermelho) */
-.answer-options button.incorrect {
+.option-select-button.incorrect {
     background-color: var(--danger-color);
     color: white;
     border: none; 
@@ -182,15 +196,12 @@ h1 {
     color: #333; /* Cor do texto escurecida para contraste */
     border-radius: 4px;
     font-size: 0.95em;
-    
-    /* NOVO: DEIXA O TEXTO DA EXPLICAÇÃO EM NEGRITO */
     font-weight: bold; 
 }
 
 /* --- Área de Navegação (Voltar e Próximo Lado a Lado) --- */
 
 .navigation-area {
-    /* CHAVE: Alinha os botões lado a lado com espaço entre eles */
     display: flex;
     justify-content: space-between; 
     align-items: center;
@@ -321,7 +332,6 @@ h1 {
         font-size: 1.6em;
     }
 
-    /* Ajuste para que o header e o botão funcionem bem em telas pequenas */
     .question-header {
         flex-direction: column;
         align-items: flex-start;
@@ -337,8 +347,13 @@ h1 {
         margin-left: 0;
         margin-top: 5px;
     }
+    
+    .option-flex {
+        flex-direction: row;
+        gap: 8px; 
+    }
 
-    .answer-options button {
+    .option-select-button {
         padding: 12px 15px;
         font-size: 0.95em;
     }
@@ -354,4 +369,4 @@ h1 {
         padding: 10px 15px;
         font-size: 0.9em;
     }
-}
+    }
