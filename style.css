@@ -1,19 +1,16 @@
 /* --- Variáveis de Tema (Para fácil personalização) --- */
 :root {
-    /* MUDANÇA: COR PRIMÁRIA AGORA É ROSA ELEGANTE */
-    --primary-color: #e83e8c; /* Rosa Elegante (Usado no título e nos botões de opção) */
+    --primary-color: #e91e63; /* Pink Vivo/Magenta (Usado no título e nos botões de opção/destaques) */
     --secondary-color: #6c757d; /* Cinza Suave (Usado no botão Voltar) */
-    --success-color: #28a745; /* Verde Vívido para Acerto (Usado no botão Próximo) */
-    --danger-color: #dc3545; /* Vermelho Forte para Erro (Usado no botão Sair) */
-    
-    /* MUDANÇA: Fundo Claro ajustado para Rosa Claro */
-    --highlight-bg: #fce8f1; /* Fundo Claro para Explicações (Rosa Claro) */
+    --success-color: #28a745; /* Verde Vívido para Acerto (Mantido) */
+    --danger-color: #dc3545; /* Vermelho Forte para Erro (Mantido) */
+    --highlight-bg: #fce4ec; /* Fundo Rosa Claro para Explicações */
     --quiz-bg: #ffffff;
     --page-bg: #f4f6f9; /* Fundo geral da página */
     --shadow-light: 0 4px 10px rgba(0, 0, 0, 0.08);
 
-    /* MUDANÇA: COR PADRÃO DO BOTÃO DE OPÇÃO AGORA É ROSA */
-    --option-default-bg: var(--primary-color);
+    /* Cores ajustadas para o estilo "Pill" (cápsula) dos botões de opção */
+    --option-default-bg: var(--primary-color); /* Rosa como fundo padrão */
     --option-default-text: white; 
 }
 
@@ -42,7 +39,7 @@ body {
 
 /* --- Títulos --- */
 h1 {
-    color: var(--primary-color);
+    color: var(--primary-color); /* Rosa */
     text-align: center;
     margin-bottom: 5px;
     font-size: 2em;
@@ -67,12 +64,47 @@ h1 {
     border-bottom: 1px dashed #ddd;
 }
 
+/* Container que alinha o texto da pergunta e o botão de áudio */
+.question-header {
+    display: flex;
+    align-items: center; 
+    justify-content: space-between; 
+    margin-bottom: 15px; 
+}
+
+/* Ajustado para o alinhamento em .question-header */
 .question-text {
     font-size: 1.3em;
     font-weight: 600;
-    margin-bottom: 15px;
+    margin: 0;
     color: #1a1a1a;
+    flex-grow: 1; 
+    padding-right: 15px;
 }
+
+/* Estilo para o botão de Leitura de Áudio */
+.audio-button {
+    /* Estilo visual */
+    background-color: var(--highlight-bg); /* Rosa Claro de Fundo */
+    color: var(--primary-color); /* Texto Rosa */
+    border: 1px solid var(--primary-color); /* Borda Rosa */
+    
+    /* Tamanho e Forma */
+    padding: 8px 12px;
+    border-radius: 8px; 
+    font-size: 1.2em;
+    line-height: 1; 
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    
+    flex-shrink: 0; 
+}
+
+.audio-button:hover {
+    background-color: var(--primary-color); /* Rosa no hover */
+    color: white;
+}
+/* FIM DAS NOVAS REGRAS */
 
 .answer-options {
     display: flex;
@@ -87,9 +119,9 @@ h1 {
     padding: 14px 20px;
     
     border: none; 
-    border-radius: 999px; /* Efeito cápsula */
+    border-radius: 999px; 
     background-color: var(--option-default-bg); /* Fundo Rosa Sólido */
-    color: var(--option-default-text); /* Texto Branco */
+    color: var(--option-default-text); 
     
     font-size: 1em;
     cursor: pointer;
@@ -98,8 +130,7 @@ h1 {
 }
 
 .answer-options button:hover:not([disabled]) {
-    /* MUDANÇA: Hover de Azul Escuro para Rosa Escuro */
-    background-color: #b52c6f; 
+    background-color: #c2185b; /* Rosa um pouco mais escuro no hover */
 }
 
 /* Botão desabilitado */
@@ -145,15 +176,15 @@ h1 {
 .rationale-text {
     margin-top: 15px;
     padding: 15px;
-    /* MUDANÇA: Borda com cor primária (Rosa) */
-    border-left: 5px solid var(--primary-color);
-    /* Fundo com highlight-bg (Rosa Claro) */
-    background-color: var(--highlight-bg);
+    border-left: 5px solid var(--primary-color); /* Borda Rosa */
+    background-color: var(--highlight-bg); /* Fundo Rosa Claro */
     font-style: italic;
-    /* MUDANÇA: Cor do texto interno (Rosa Escuro) */
-    color: #b52c6f;
+    color: #333; /* Cor do texto escurecida para contraste */
     border-radius: 4px;
     font-size: 0.95em;
+    
+    /* NOVO: DEIXA O TEXTO DA EXPLICAÇÃO EM NEGRITO */
+    font-weight: bold; 
 }
 
 /* --- Área de Navegação (Voltar e Próximo Lado a Lado) --- */
@@ -179,7 +210,7 @@ h1 {
     cursor: pointer;
     transition: background-color 0.2s, opacity 0.2s, box-shadow 0.2s;
     text-transform: uppercase;
-    min-width: 120px; /* Garante tamanho mínimo para consistência */
+    min-width: 120px; 
     text-align: center;
 }
 
@@ -200,14 +231,12 @@ h1 {
     background-color: #218838;
 }
 
-/* Botão FINALIZAR agora é Rosa */
 .finish-button {
-    background-color: var(--primary-color);
+    background-color: var(--primary-color); /* Botão Finalizar em Rosa */
     color: white;
 }
 .finish-button:hover:not([disabled]) {
-    /* MUDANÇA: Hover de Azul Escuro para Rosa Escuro */
-    background-color: #b52c6f;
+    background-color: #c2185b; /* Hover Rosa Escuro */
 }
 
 .nav-button:disabled {
@@ -240,10 +269,9 @@ h1 {
 }
 
 .motivation-message {
-    /* A cor da mensagem de motivação também é a primária (Rosa) */
-    color: var(--primary-color);
     margin-top: 20px;
     font-style: italic;
+    color: var(--primary-color); /* Rosa */
     font-weight: 500;
 }
 
@@ -293,8 +321,21 @@ h1 {
         font-size: 1.6em;
     }
 
+    /* Ajuste para que o header e o botão funcionem bem em telas pequenas */
+    .question-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
     .question-text {
         font-size: 1.1em;
+        margin-bottom: 10px; 
+        padding-right: 0;
+    }
+    
+    .audio-button {
+        margin-left: 0;
+        margin-top: 5px;
     }
 
     .answer-options button {
@@ -303,7 +344,7 @@ h1 {
     }
 
     .navigation-area {
-        flex-direction: row; /* Mantém lado a lado, mas reduz o espaço */
+        flex-direction: row; 
         justify-content: space-around;
         gap: 10px;
     }
